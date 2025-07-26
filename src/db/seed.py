@@ -1,11 +1,10 @@
 import sys
 import os
 
-# Add the parent directory of db/ to sys.path (i.e., src/)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from db.database import engine, SessionLocal, Base
-from models.product import Product
+from models.product_model import Product
 from faker import Faker
 import asyncio
 import random
@@ -45,7 +44,7 @@ async def seed():
                 for _ in range(BATCH_SIZE)
             ]
             session.add_all(products)
-            await session.flush()  # Faster than commit per batch
+            await session.flush() 
         await session.commit()
 
 async def main():

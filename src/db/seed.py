@@ -28,7 +28,7 @@ def generate_product_name():
 
 async def seed():
     async with SessionLocal() as session:
-        BATCH_SIZE = 100  # Increase this for faster seeding
+        BATCH_SIZE = 100  
         TOTAL_BATCHES = 1000  # 100 * 1000 = 100,000 products
 
         for _ in range(TOTAL_BATCHES):

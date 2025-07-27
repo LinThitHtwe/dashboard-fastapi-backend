@@ -103,11 +103,12 @@ async def list_products(
     category: Optional[str] = Query(None),
     min_price: Optional[float] = Query(None, ge=0),
     max_price: Optional[float] = Query(None, ge=0),
+    name: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db)
 ):
     start_time = time.time()
 
-    cache_key = f"products:list:{skip}:{limit}:{sort_by}:{sort_dir}:{category}:{min_price}:{max_price}"
+    cache_key = f"products:list:{skip}:{limit}:{sort_by}:{sort_dir}:{category}:{min_price}:{max_price}:{name}"
 
     async def fetch_products():
         return [
@@ -120,7 +121,8 @@ async def list_products(
                 sort_dir=sort_dir,
                 category=category,
                 min_price=min_price,
-                max_price=max_price
+                max_price=max_price,
+                name=name
             )
         ]
 

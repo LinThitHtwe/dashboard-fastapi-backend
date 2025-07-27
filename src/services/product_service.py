@@ -17,7 +17,8 @@ async def get_products_list(
     sort_dir: str,
     category: Optional[str],
     min_price: Optional[float],
-    max_price: Optional[float]
+    max_price: Optional[float],
+    name: Optional[str]
 ):
 
     query = select(Product)
@@ -28,6 +29,8 @@ async def get_products_list(
         query = query.where(Product.price >= min_price)
     if max_price is not None:
         query = query.where(Product.price <= max_price)
+    if name:
+        query = query.where(Product.name.ilike(f"%{name}%"))
 
     sort_column = getattr(Product, sort_by)
     query = query.order_by(desc(sort_column) if sort_dir == "desc" else asc(sort_column))

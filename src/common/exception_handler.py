@@ -1,5 +1,3 @@
-
-
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -11,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from src.common.response_base_model import Result
 from src.common.logger import logger  
+from src.constants.constant import ERROR_CODE, ERROR_MESSAGE
 
 
 async def db_exception_handler(request: Request, exc: SQLAlchemyError):
@@ -21,8 +20,8 @@ async def db_exception_handler(request: Request, exc: SQLAlchemyError):
     return JSONResponse(
         status_code=500,
         content=Result.fail(
-            message="A database error occurred. : " + str(exc),
-            errorCode="DB_ERROR",
+            message=ERROR_MESSAGE.DB_ERROR + " : " + str(exc),
+            errorCode=ERROR_CODE.DB_ERROR,
             meta={"path": str(request.url)}
         ).model_dump()
     )
@@ -35,8 +34,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         status_code=422,
         content=Result.fail(
-            message="Validation failed. : " + str(exc),
-            errorCode="VALIDATION_ERROR",
+            message=ERROR_MESSAGE.VALIDATION_ERROR + " : " + str(exc),
+            errorCode=ERROR_CODE.VALIDATION_ERROR,
             meta={
                 "errors": exc.errors(),
                 "body": exc.body,
@@ -68,8 +67,8 @@ async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
         status_code=500,
         content=Result.fail(
-            message="An unexpected error occurred. : " + str(exc),
-            errorCode="INTERNAL_ERROR",
+            message=ERROR_MESSAGE.INTERNAL_ERROR + " : " + str(exc),
+            errorCode=ERROR_CODE.INTERNAL_ERROR,
             meta={"path": str(request.url)}
         ).model_dump()
     )

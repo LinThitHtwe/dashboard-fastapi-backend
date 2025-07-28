@@ -12,7 +12,7 @@ This project is a simple Product REST API built with Python FastAPI. It uses Pos
 - Centralized exception handling and logging
 - Docker & docker-compose support
 
-# Main Focus of development
+## Main Focus of development
 
 - **Global Exception Handling:** All errors are caught and returned in a consistent, structured format, to make debugging and client integration easier.
 - **Redis Caching:** Queries are cached, reducing latency and database load.

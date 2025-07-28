@@ -61,6 +61,10 @@ aioredis==2.0.1
 Faker==37.4.2
 ```
 
+## Frontend Project Url
+
+[https://github.com/LinThitHtwe/dashboard-nextjs-frontend](https://github.com/LinThitHtwe/dashboard-nextjs-frontend)
+
 ## Configuration & Setup
 
 Below are the steps to run this project locally

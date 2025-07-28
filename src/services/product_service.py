@@ -1,15 +1,14 @@
-import time
 from fastapi import HTTPException, status
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import asc, desc
 from typing import Optional
 from src.models.product_model import Product
-from src.schemas.product_schema import ProductOut
-from src.common.response_base_model import Result
+from src.schemas.product_schema import ProductCreate, ProductOut
 from sqlalchemy.exc import SQLAlchemyError
+from src.common.logger import logger  
 
-async def get_products_list(
+async def get_products_list_service(
     db: AsyncSession,
     skip: int,
     limit: int,
@@ -21,6 +20,10 @@ async def get_products_list(
     name: Optional[str]
 ):
 
+    logger.debug("Fetching product list with filters: "
+                    f"category={category}, min_price={min_price}, max_price={max_price}, "
+                    f"name={name}, sort_by={sort_by}, sort_dir={sort_dir}, skip={skip}, limit={limit}")
+    
     query = select(Product)
 
     if category:
@@ -39,28 +42,68 @@ async def get_products_list(
     result = await db.execute(query)
     products = result.scalars().all()
 
+    logger.info(f"Fetched {len(products)} products from the database")
     
     return [ProductOut.model_validate(p) for p in products]
 
-async def get_product_by_id(product_id: int, db: AsyncSession) -> ProductOut:
-    start_time = time.time()
-
+async def get_product_by_id_service(product_id: int, db: AsyncSession) -> ProductOut:
     try:
+        logger.debug(f"Fetching product by ID: {product_id}")
         result = await db.execute(select(Product).where(Product.id == product_id))
         product = result.scalars().first()
 
         if not product:
+            logger.warning(f"Product not found: {product_id}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Product not found"
             )
 
-        elapsed_time = (time.time() - start_time) * 1000  
-        if elapsed_time > 100:
-            print(f"get_product_by_id({product_id}) took {elapsed_time:.2f}ms")
+        logger.info(f"Product found: {product_id}")
 
         return ProductOut.model_validate(product)
 
     except SQLAlchemyError as e:
-        print(f"Database error: {e}")
+        logger.error(f"Database error while getting product {product_id}: {e}")
+        raise
+
+async def create_product_service(product: ProductCreate, db: AsyncSession) -> ProductOut:
+    try:
+        logger.debug(f"Creating product: {product.name}")
+        db_product = Product(**product.model_dump())
+        db.add(db_product)
+        await db.commit()
+        await db.refresh(db_product)
+
+        logger.info(f"Product created successfully: {db_product.id}")
+
+        return ProductOut.model_validate(db_product)
+
+    except SQLAlchemyError as e:
+        await db.rollback()
+        logger.error(f"Database error while creating product: {e}")
+        raise
+
+async def update_product_service(product_id: int, updated: ProductCreate, db: AsyncSession) -> ProductOut:
+    try:
+        result = await db.execute(select(Product).where(Product.id == product_id))
+        product = result.scalars().first()
+
+        if not product:
+            logger.warning(f"Product not found for update: {product_id}")
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        for field, value in updated.model_dump().items():
+            setattr(product, field, value)
+
+        await db.commit()
+        await db.refresh(product)
+
+        logger.info(f"Product updated successfully: {product_id}")
+
+        return ProductOut.model_validate(product)
+
+    except SQLAlchemyError as e:
+        await db.rollback()
+        logger.error(f"Database error while updating product {product_id}: {e}")
         raise

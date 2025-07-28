@@ -16,7 +16,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.core.config import settings
 from contextlib import asynccontextmanager
 
-#app = FastAPI(title = "Product API")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -45,9 +44,5 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# @app.get("/")
-# def root():
-#     return {"Message": "Hellloooo"}
 
 app.include_router(product.router)
